@@ -1,10 +1,17 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'package:warehouse/models/section.dart';
-import 'package:warehouse/widgets/item_place.dart';
+import 'package:warehouse/providers/item_provider.dart';
+import 'package:warehouse/providers/section_provider.dart';
+import 'package:warehouse/widgets/item_wrap.dart';
 
 class SectionPageList extends StatefulWidget {
-  const SectionPageList({Key? key}) : super(key: key);
+  const SectionPageList({
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<SectionPageList> createState() => _SectionPageListState();
@@ -18,6 +25,10 @@ class _SectionPageListState extends State<SectionPageList> {
 
   @override
   Widget build(BuildContext context) {
+    ItemProvider itemProvider =
+        Provider.of<ItemProvider>(context, listen: false);
+    SectionProvider sectionProvider =
+        Provider.of<SectionProvider>(context, listen: false);
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance
             .collection("Section")
@@ -32,8 +43,12 @@ class _SectionPageListState extends State<SectionPageList> {
             sections.clear();
             for (var element in snapshot.data!.docs) {
               Section section = Section.fromMap(element.data());
+              section.id = element.id;
               sections.add(section);
             }
+            Future.delayed(Duration.zero, () {
+              sectionProvider.setSectionId(sections.first.id);
+            });
             return PageView.builder(
                 controller: pageController,
                 scrollDirection: Axis.horizontal,
@@ -49,7 +64,10 @@ class _SectionPageListState extends State<SectionPageList> {
                             visible: pageIndex - 1 != -1,
                             child: IconButton(
                               onPressed: () {
+                                itemProvider.removeCard();
                                 pageIndex -= 1;
+                                sectionProvider
+                                    .setSectionId(sections[pageIndex].id);
                                 pageController.animateToPage(pageIndex,
                                     duration: const Duration(milliseconds: 200),
                                     curve: Curves.linear);
@@ -65,7 +83,10 @@ class _SectionPageListState extends State<SectionPageList> {
                             visible: pageIndex + 1 != sections.length,
                             child: IconButton(
                               onPressed: () {
+                                itemProvider.removeCard();
                                 pageIndex += 1;
+                                sectionProvider
+                                    .setSectionId(sections[pageIndex].id);
                                 pageController.animateToPage(pageIndex,
                                     duration: const Duration(milliseconds: 200),
                                     curve: Curves.linear);
@@ -77,21 +98,8 @@ class _SectionPageListState extends State<SectionPageList> {
                       ),
                       const SizedBox(height: 10),
                       Expanded(
-                        child: Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: List.generate(sections[listIndex].capacity,
-                              (index) {
-                            return sections[listIndex]
-                                    .items
-                                    .keys
-                                    .contains(index.toString())
-                                ? ItemPlace(
-                                    itemId: sections[listIndex]
-                                        .items[index.toString()])
-                                : const ItemPlace();
-                          }),
-                        ),
+                        child:
+                            ItemWrap(sections: sections, listIndex: listIndex),
                       ),
                     ],
                   );

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:warehouse/providers/item_provider.dart';
 import 'package:warehouse/screens/dashboard_screen.dart';
+import 'package:warehouse/widgets/item_mini_detail_card.dart';
 import 'package:warehouse/widgets/side_bar.dart';
 
 class MainScreen extends StatefulWidget {
@@ -44,57 +47,84 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ItemProvider itemProvider =
+        Provider.of<ItemProvider>(context, listen: false);
     return SafeArea(
       child: Scaffold(
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          color: const Color(0xff00875a),
-          child: Row(
+        body: GestureDetector(
+          onTap: () {
+            itemProvider.removeCard();
+          },
+          child: Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 50),
-                child: Column(
+              Container(
+                width: double.infinity,
+                height: double.infinity,
+                color: const Color(0xff00875a),
+                child: Row(
                   children: [
-                    Expanded(
-                      flex: 2,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 50),
                       child: Column(
-                        children: const [
-                          CircleAvatar(
-                            radius: 25,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: const [
+                                CircleAvatar(
+                                  radius: 25,
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Text(
+                                  "Admin",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 15),
+                                ),
+                              ],
+                            ),
                           ),
-                          SizedBox(
-                            height: 10,
+                          Expanded(
+                            flex: 5,
+                            child: SideBar(
+                              onTap: (index) {
+                                itemProvider.removeCard();
+                                pageController.animateToPage(index,
+                                    duration: const Duration(milliseconds: 200),
+                                    curve: Curves.linear);
+                              },
+                            ),
                           ),
-                          Text(
-                            "Admin",
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
+                          const Spacer(),
                         ],
                       ),
                     ),
                     Expanded(
-                      flex: 5,
-                      child: SideBar(
-                        onTap: (index) {
-                          pageController.animateToPage(index,
-                              duration: const Duration(milliseconds: 200),
-                              curve: Curves.linear);
-                        },
-                      ),
+                      child: PageView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          controller: pageController,
+                          scrollDirection: Axis.vertical,
+                          itemBuilder: (context, index) {
+                            return pages[index];
+                          }),
                     ),
-                    const Spacer(flex: 2),
                   ],
                 ),
               ),
-              Expanded(
-                child: PageView.builder(
-                    controller: pageController,
-                    scrollDirection: Axis.vertical,
-                    itemBuilder: (context, index) {
-                      return pages[index];
-                    }),
-              ),
+              Consumer<ItemProvider>(builder: (context, item, child) {
+                return Visibility(
+                  visible: item.choosed,
+                  child: Transform.translate(
+                    offset: Offset(
+                      item.ofsetPosition.dx,
+                      item.ofsetPosition.dy,
+                    ),
+                    child: ItemMiniDetailCard(
+                      itemId: item.itemId,
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
         ),

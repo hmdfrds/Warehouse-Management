@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:warehouse/widgets/item_place.dart';
+import 'package:warehouse/widgets/item_detail_list.dart';
+import 'package:warehouse/widgets/list_section_list.dart';
+import 'package:warehouse/widgets/section_card.dart';
 import 'package:warehouse/widgets/section_page_list.dart';
+import 'package:warehouse/widgets/section_page_list_footer.dart';
 
 class DashBoardScreen extends StatefulWidget {
   const DashBoardScreen({
@@ -65,47 +68,30 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       ],
                     ),
                     const Expanded(flex: 9, child: SectionPageList()),
-                    Row(
-                      children: [
-                        Row(
-                          children: const [
-                            ItemPlace(),
-                            SizedBox(width: 10),
-                            Text(
-                              "Free place",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(width: 30),
-                        Row(
-                          children: const [
-                            ItemPlace(itemId: ""),
-                            SizedBox(width: 10),
-                            Text(
-                              "Loaded place",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        TextButton(
-                            style: TextButton.styleFrom(
-                                textStyle: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 20)),
-                            onPressed: () {},
-                            child: const Text("Show all"))
-                      ],
+                    const SectionPageListFooter(),
+                    const Expanded(
+                      flex: 11,
+                      child: ListSectionList(),
                     ),
-                    Expanded(flex: 11, child: Column()),
                   ],
                 ),
               ),
             ),
-            Expanded(child: Column()),
+            Expanded(
+                child: Column(
+              children: const [
+                Expanded(
+                  child: SectionCard(),
+                ),
+                Expanded(
+                  child: ItemDetailList(),
+                ),
+              ],
+            )),
           ],
         ),
       ),
     );
   }
 }
+
